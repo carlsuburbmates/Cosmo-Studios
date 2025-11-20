@@ -23,8 +23,39 @@ const openDB = (): Promise<IDBDatabase> => {
   });
 };
 
+// RISK REPORT FIX: Quota Check
+const checkQuotaSafe = async (payloadSize: number): Promise<boolean> => {
+    if (navigator.storage && navigator.storage.estimate) {
+        try {
+            const { usage, quota } = await navigator.storage.estimate();
+            if (usage && quota) {
+                const remaining = quota - usage;
+                if (remaining < payloadSize) {
+                    console.error(`Storage Quota Exceeded. Required: ${payloadSize}, Available: ${remaining}`);
+                    return false;
+                }
+                // Warning threshold at 80% usage
+                if (usage / quota > 0.8) {
+                    console.warn("Storage usage is above 80%.");
+                }
+            }
+        } catch (e) {
+            // Fallback if estimate fails, proceed with caution
+            return true;
+        }
+    }
+    return true;
+};
+
 // Save a heavy asset (Base64 string)
 export const saveAsset = async (key: string, data: string): Promise<void> => {
+  // Check quota roughly (Base64 is char count * 1 byte approx in JS string, though memory is 2 bytes/char)
+  // We just check if we have rough headroom.
+  const isSafe = await checkQuotaSafe(data.length);
+  if (!isSafe) {
+      throw new Error("Disk Quota Exceeded. Please delete old projects to free up space.");
+  }
+
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');

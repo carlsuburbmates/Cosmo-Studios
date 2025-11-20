@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>CosmoStudio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -30,8 +31,9 @@
       body {
         background-color: #FAFAF9;
         color: #1C1C1C;
+        overscroll-behavior: none; /* Prevents rubber-banding on Mac */
       }
-      /* Custom scrollbar for a cleaner look */
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -45,6 +47,25 @@
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #787878;
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .mask-fade-right {
+        mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+      }
+
+      /* Mobile tweaks */
+      @media (max-width: 768px) {
+        input, textarea {
+          font-size: 16px !important; /* Prevent iOS zoom */
+        }
       }
     </style>
   <script type="importmap">
