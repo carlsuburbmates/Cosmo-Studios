@@ -14,7 +14,7 @@ import { AccountPopover } from "./components/AccountPopover";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { LiveSession } from "./components/LiveSession";
 import { useDebounce } from "./hooks/useDebounce";
-import { generateSceneImage, generateImageEdit, generateSceneSuggestions, checkSceneConsistency } from "./services/geminiService";
+import { generateSceneImage, generateImageEdit, generateSceneSuggestions, checkSceneConsistency, isLiveSessionAvailable } from "./services/geminiService";
 import * as AssetStore from "./services/assetStore";
 import * as ProjectService from "./services/projectService";
 import * as AuthService from "./services/authService";
@@ -54,6 +54,7 @@ const App: React.FC = () => {
   const debouncedCast = useDebounce(cast, 1500);
   const debouncedScenes = useDebounce(scenes, 1500);
   const lastSavedSignature = useRef<Set<string>>(new Set());
+  const liveSessionEnabled = isLiveSessionAvailable();
 
   const addNotification = useCallback((message: string, type: 'success' | 'error' | 'info' | 'warning', cost?: number) => {
     const id = crypto.randomUUID();
@@ -67,7 +68,9 @@ const App: React.FC = () => {
       const hasKey = await window.aistudio.hasSelectedApiKey();
       if (hasKey) { setHasApiKey(true); setCheckingKey(false); return; }
     }
-    if (process.env.API_KEY) setHasApiKey(true);
+    // In a Vercel deployment, the key is only on the server, but we need to proceed.
+    // The proxy will handle the key. We assume the client can operate.
+    setHasApiKey(true);
     setCheckingKey(false);
   }, []);
 
@@ -342,7 +345,7 @@ const App: React.FC = () => {
   }, [handleGenerateScenes, initialRatio, addNotification]);
 
   if (checkingKey) return null;
-  if (!hasApiKey) return <div className="h-screen flex items-center justify-center bg-stone-50"><button onClick={handleSelectKey} className="px-6 py-3 bg-atelier-ink text-white uppercase font-bold tracking-widest hover:bg-stone-800 transition-colors">Enter Studio</button></div>;
+  if (!hasApiKey && window.aistudio) return <div className="h-screen flex items-center justify-center bg-stone-50"><button onClick={handleSelectKey} className="px-6 py-3 bg-atelier-ink text-white uppercase font-bold tracking-widest hover:bg-stone-800 transition-colors">Enter Studio</button></div>;
   if (!currentUser) return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
   if (showOnboarding) return <CreativeBrief onComplete={handleLaunchStudio} onSkip={() => handleLaunchStudio({ projectTitle: "Untitled Project", cast: [], scenes: [], suggestedRatio: '16:9' })} />;
   if (showLiveSession) return <LiveSession onClose={() => setShowLiveSession(false)} />;
@@ -372,7 +375,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-            {currentProjectId && (
+            {currentProjectId && liveSessionEnabled && (
                 <button onClick={() => setShowLiveSession(true)} className="flex-shrink-0 h-8 px-3 flex items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-700 transition-colors shadow-sm" aria-label="Live Brainstorm">
                   <span>✦ Live Brainstorm</span>
                 </button>

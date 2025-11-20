@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Modality, Type, Schema, Chat, LiveServerMessage, Blob } from "@google/genai";
 import { CastMember, AspectRatio, ProjectManifest } from "../types";
 
@@ -161,14 +162,13 @@ export const generateVideo = async (
 
 
 // --- LIVE CREATIVE SESSION ---
-// Live sessions use WebSockets and cannot be easily proxied via a simple serverless function.
-// This feature will rely on the AI Studio environment's key management.
-// When deploying to Vercel, this feature would require a dedicated WebSocket server,
-// which is beyond the scope of a simple serverless deployment.
-// For now, we will leave the implementation as-is, but it may not function
-// on Vercel without `window.aistudio` being present.
-
-const getAIForLive = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+/**
+ * Checks if the current environment supports the Live Session feature.
+ * This feature requires the AI Studio environment which provides window.aistudio.
+ */
+export const isLiveSessionAvailable = (): boolean => {
+  return typeof window !== 'undefined' && !!window.aistudio;
+};
 
 async function decodeAudioData(
     data: Uint8Array,
@@ -226,12 +226,12 @@ export const startLiveSession = (callbacks: {
     onError: (e: ErrorEvent) => void,
     onAudioChunk: (audioChunk: AudioBuffer) => void,
 }, outputAudioContext: AudioContext) => { 
-    // This will only work in environments where the API key is directly available
-    // on the client, like the provided AI Studio environment.
-    if (!process.env.API_KEY && !window.aistudio) {
-        throw new Error("Live session requires a secure environment with direct API key access, which is not available in this Vercel deployment.");
+    if (!isLiveSessionAvailable()) {
+        throw new Error("Live session is only available in the AI Studio environment.");
     }
-    const ai = getAIForLive();
+
+    // This is now safe to call because the AI Studio environment will provide process.env.API_KEY
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY }); 
     let stream: MediaStream | null = null;
     let inputAudioContext: AudioContext | null = null;
     let scriptProcessor: ScriptProcessorNode | null = null;
