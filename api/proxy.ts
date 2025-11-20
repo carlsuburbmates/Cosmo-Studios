@@ -264,13 +264,18 @@ const services: { [key: string]: (payload: any) => Promise<any> } = {
     }
     const videoUri = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!videoUri) throw new Error("No video URI returned.");
+
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API_KEY environment variable not set on the server.");
+    }
+
     const separator = videoUri.includes('?') ? '&' : '?';
-    const fileResponse = await fetch(`${videoUri}${separator}key=${process.env.API_KEY}`);
+    const fileResponse = await fetch(`${videoUri}${separator}key=${apiKey}`);
     if (!fileResponse.ok) throw new Error("Failed to download video file.");
+    
     const blob = await fileResponse.blob();
-    // This part is tricky in serverless. Let's convert blob to base64 string.
     const buffer = await blob.arrayBuffer();
-    // FIX: Replaced Node.js Buffer with a browser-compatible function to avoid reference errors.
     const videoBase64 = arrayBufferToBase64(buffer);
     return { videoUrl: `data:${blob.type};base64,${videoBase64}`, cost: COSTS.VIDEO_GENERATION };
   },
