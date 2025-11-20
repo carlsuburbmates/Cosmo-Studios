@@ -14,6 +14,28 @@ interface TranscriptionLine {
     text: string;
 }
 
+interface StatusIndicatorProps {
+    status: ConnectionStatus;
+}
+
+const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status }) => {
+    const statusMap = {
+        idle: { text: "Ready to Brainstorm", color: "bg-stone-400" },
+        connecting: { text: "Connecting...", color: "bg-yellow-500 animate-pulse" },
+        listening: { text: "Listening...", color: "bg-green-500" },
+        speaking: { text: "AI is Speaking...", color: "bg-blue-500 animate-pulse" },
+        error: { text: "Error", color: "bg-red-500" },
+        closed: { text: "Session Ended", color: "bg-stone-500" },
+    };
+    const { text, color } = statusMap[status];
+    return (
+        <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${color}`}></div>
+            <span className="text-xs font-bold uppercase tracking-widest text-white">{text}</span>
+        </div>
+    );
+};
+
 export const LiveSession: React.FC<LiveSessionProps> = ({ onClose }) => {
     const [status, setStatus] = useState<ConnectionStatus>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -126,24 +148,6 @@ export const LiveSession: React.FC<LiveSessionProps> = ({ onClose }) => {
         outputAudioContextRef.current = null;
 
         setStatus('closed');
-    };
-
-    const StatusIndicator: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
-        const statusMap = {
-            idle: { text: "Ready to Brainstorm", color: "bg-stone-400" },
-            connecting: { text: "Connecting...", color: "bg-yellow-500 animate-pulse" },
-            listening: { text: "Listening...", color: "bg-green-500" },
-            speaking: { text: "AI is Speaking...", color: "bg-blue-500 animate-pulse" },
-            error: { text: "Error", color: "bg-red-500" },
-            closed: { text: "Session Ended", color: "bg-stone-500" },
-        };
-        const { text, color } = statusMap[status];
-        return (
-            <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${color}`}></div>
-                <span className="text-xs font-bold uppercase tracking-widest text-white">{text}</span>
-            </div>
-        );
     };
 
     return (

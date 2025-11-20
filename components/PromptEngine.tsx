@@ -20,7 +20,12 @@ const WIZARD_CHIPS = {
 
 const RATIOS: AspectRatio[] = ['16:9', '21:9', '1:1', '9:16', '4:3'];
 
-const WizardModal: React.FC<{ onAddChip: (text: string); onClose: () => void }> = ({ onAddChip, onClose }) => {
+interface WizardModalProps {
+  onAddChip: (text: string) => void;
+  onClose: () => void;
+}
+
+const WizardModal: React.FC<WizardModalProps> = ({ onAddChip, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<'MOOD' | 'CAMERA' | 'LIGHTING'>('MOOD');
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 animate-in fade-in" onClick={onClose}>
