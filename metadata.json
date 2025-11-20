@@ -1,0 +1,5 @@
+{
+  "name": "CosmoStudio: Character Lab",
+  "description": "A Swiss-style digital atelier for multi-character scene generation using Google Gemini 2.5 Flash Image.",
+  "requestFramePermissions": []
+}
